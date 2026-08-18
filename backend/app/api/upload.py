@@ -1,7 +1,7 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException
 
-from app.services.pdf_service import extract_text
-
+from app.services.document_service import process_document
+from app.services.document_store import documents
 router = APIRouter(
     prefix="/api",
     tags=["Upload"]
@@ -32,12 +32,13 @@ async def upload_pdf(file: UploadFile = File(...)):
 
     file.file.seek(0)
 
+    document = process_document(file.file)
 
-    text = extract_text(file.file)
+    documents["current"] = document
   
     return {
-        "message": "PDF uploaded successfully.",
-        "filename" : file.filename,
-        "content_type" : file.content_type,
-        "text" : text[:500]
+    "message": "PDF indexed successfully.",
+    "filename": file.filename,
+    "content_type": file.content_type,
+    "metadata": document["metadata"]
     }
